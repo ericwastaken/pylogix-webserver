@@ -47,13 +47,128 @@ The file **./conf/auth-tokens.json** should contain one or more tokens that clie
 
 ### Starting
 
-TODO: Discuss how to start the webserver with the shell script and the env/command line variables.
+Before starting:
+1. Create your own **./conf/plc-config.json** file based on the template file **./conf/plc-config.template.json5**. See the section above for more details.
+2. Create your own **./conf/auth-tokens.json** file based on the template file **./conf/auth-tokens.template.json**. See the section above for more details.
+
+After you have these two files, you can start the web server by changing into the **./server** directory and running:
+
+```bash
+$ python -u server.py \
+  --host "${HOST}" \
+  --port "${PORT}" \
+  --cache-directory "${PLC_CACHE_DIRECTORY}" \
+  --config-file-path "${PLC_CONFIG_FILE_PATH}" \
+  --auth-token-file-path "${AUTH_TOKENS_FILE_PATH}" \
+  --cache-ttl "${CACHE_TTL}"
+```
+- **host** is ip address or hostname to bind to. For testing local "localhost" is suitable. See TLS for more information deploying to servers connected to the internet.
+- **port** is the port to bind to. Any port is possible, the examples here use 8000.
+- **cache-directory** is the directory where the web server will store cached tag lists data. This is used to speed up subsequent type matching.
+- **config-file-path** is the path to the PLC config file discussed above.
+- **auth-token-file-path** is the path to the auth token file discussed above.
+- **cache-ttl** is the time to live for cached tag lists data. This is used to speed up subsequent type matching. The value is in minutes. 24 hours (1440 minutes) is suitable for environments where the PLC tag list doesn't change often.
+
+Note that the repo includes a convenience script `./python-server-up.sh` that will start the server with the exact command above and pulling from environment variables. Be sure to set those environment variables before running the script or make a copy with static values.
+
+In a PRODUCTION environment, you'll want to front this web server with something more suitable like Nginx as a proxy (and you'll definitely want to set up TLS. See the TLS section below for more information.) A detailed discussion of setting up Nginx as a proxy is outside the scope of this project, but you can see the Docker deployment included as an example.
 
 ### Endpoints
 
-- get tag list (TODO: explain types and how they're merged back into results)
-- get tag values (TODO: explain the results, including the type key that is added.)
-- get tag batches (TODO: explain batch_list, including the type key that is added.)
+The following are the endpoints implemented by the web server. Note all endpoints require an Authentication header. See the Authentication section above for more information.
+
+- get tag list (PyLogix GetTagList): gets the list of tags from a PLC that the web server can access.
+  - Example Request:
+    ```bash
+    curl -X POST --location "http://localhost:8000/get_tag_list" \
+        -H "Content-Type: application/json" \
+        -H "Authorization: basic your-token-here" \
+        -d "{\"plc_id\":\"some-plc-id-from-your-config\"}"
+    ```
+  - Responds with a JSON object in the form:
+    ```json5
+    {
+      "plc_id": "the ID of the PLC",
+      "tag_list": {
+        // A key for each TAG in the PLC with the corresponding TYPE.
+        "BOOL_Rx": {
+          "type": "BOOL"
+        }
+        // Repeats for as many tags as the PLC has...
+      },
+      // The PLC time at the time of the tag list fetch
+      "plc_time": 1687904399.6868227
+    }
+    ```
+
+
+- get tag values (PyLogix GetTagValue): Gets the value of a single tag or a tag list from a PLC that the web server can access.
+  - Example Request (pass a single tag):
+    ```bash
+    curl -X POST --location "http://localhost:8000/get_tag_value" \
+      -H "Content-Type: application/json" \
+      -H "Authorization: basic your-token-here" \
+      -d "{\"plc_id\":\"some-plc-id-from-your-config\", \"tag_name\":\"DINT_Rx\"}"
+    ```
+  - Example Request (pass a tag list, an array of tag names strings):
+    ```bash
+    curl -X POST --location "http://localhost:8000/get_tag_value" \
+      -H "Content-Type: application/json" \
+      -H "Authorization: basic your-token-here" \
+      -d "{\"plc_id\":\"some-plc-id-from-your-config\", \"tag_list\":[\"STRING_Rx\",\"DINT_Rx\"]}"
+    ```
+  - Responds with a JSON object in the form:
+    ```json5
+    {
+    "tag_values": [
+      {
+        "tag_name": "DINT_Rx",
+        "value": 55,
+        // Important: If PyLogix can't read the value, success will be false and status will be set to the error message from the library.
+        "success": true,
+        "status": "",
+        // PLC Type is added to the response for convenience - it is not part of the PyLogix response each time, but rather a cached value from the tag list fetch on server startup and updated to match the CACHE TTL in your config.
+        "tag_type": "DINT"
+      }
+      // Repeats for as many tags as were requested...
+    ],
+    // The PLC time at the time of the tag value fetch
+    "plc_time": 884244931.519458
+    }
+    ```
+    - **tag_values** is an array of as many tags as were requested, excluding any tags that were limited or excluded by allow_tags, allow_tag_regex, etc. in your config. Even passing a single tag name will still yield an array of 1 tag value.
+    - **plc_time** is the PLC time at the time of the tag value fetch.
+
+
+- get tag batches (PyLogix GetTagValue with a list of tag names): Gets the value of a tag list, configured via the config file, from a PLC that the web server can access.
+  - Example Request:
+    ```bash
+    $ curl -X POST --location "http://localhost:8000/get_tag_batch" \
+      -H "Content-Type: application/json" \
+      -H "Authorization: basic your-token-here" \
+      -d "{\"tag_batch_id\":\"some-batch-id-from-your-config\"}"
+    ```
+  - Responds with a JSON object in the form: (identical to get tag value)
+    ```json5
+    {
+    "tag_values": [
+      {
+        "tag_name": "DINT_Rx",
+        "value": 55,
+        // Important: If PyLogix can't read the value, success will be false and status will be set to the error message from the library.
+        "success": true,
+        "status": "",
+        // PLC Type is added to the response for convenience - it is not part of the PyLogix response each time, but rather a cached value from the tag list fetch on server startup and updated to match the CACHE TTL in your config.
+        "tag_type": "DINT"
+      }
+      // Repeats for as many tags as were requested...
+    ],
+    // The PLC time at the time of the tag value fetch
+    "plc_time": 884244931.519458
+    }
+    ```
+    - **tag_values** is an array of as many tags as were requested, excluding any tags that were limited or excluded by allow_tags, allow_tag_regex, etc. in your config. Even passing a single tag name will still yield an array of 1 tag value.
+    - **plc_time** is the PLC time at the time of the tag value fetch.
 
 ## Deploying
 
@@ -163,21 +278,23 @@ As an alternative, you can use the Docker version of the server, which will run 
 NodeJS is only used for formatting JSON files with prettier. It's not used for the server itself.
 
 ## Roadmap TODOs
+
 - README todo items
 - Crete a Docker compose deployment.
   - copies the code, python 3.11.4, install requirements, bind conf, data in a volume
   - fix PyCharm's run-config for the docker-compose deployment
-- Document Nginx native (after Docker container, so I have the nginx conf)
 - Test all the calls with unresponsive PLC
   - "description": "An internal error occurred. Details: 'NoneType' object has no attribute 'timestamp'"
 
 ## Future TODOs
+
 - (maybe) Support more features from the underlying PyLogix (other than tag write or other operations that change PLC data)?
 - (maybe, unlikely we want this unless much more security is added) Writing tags (or other PLC data changes) with granular permissions (could be limited to certain tokens, or even certain tags explicitly configured.)
 - (maybe) Stricter adherence to REST specifications?
 - (if needed) other authentication methods? (LDAP/RADIUS, etc.)
 
 ## Known limitations
+
 - In plc_io
   - Sometimes get "'utf-8' codec can't decode byte 0xfb in position 4: invalid start byte" when reading some timers ("TON_A", "TON_B" from a test rig, of type TIMER). Other timers read fine. This is an issue with my test rig, and I'm not sure if it's necessary to look into further.
   - Inside a read-tag-list, a failure causes the whole call to bail. Since this one call to pylogix fails, this means that a single bad tag inside a tag list causes the whole call to fail.
