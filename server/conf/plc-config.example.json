@@ -1,0 +1,104 @@
+{
+  "plc_list": [
+    {
+      "id": "test 1, slot 0, should not work",
+      "ip": "192.168.1.211",
+      "port": 44818,
+      "slot": 0,
+      "allow_tags": ["TAG1", "TAG2"],
+      "exclude_tags": ["TAG3"],
+      "allow_tags_regex": ".*",
+      "exclude_tags_regex": ""
+    },
+    {
+      "id": "test 2, slot 0, should work",
+      "ip": "192.168.1.210",
+      "port": 44818,
+      "slot": 0,
+      "allow_tags": [],
+      "exclude_tags": ["SOME_EXCLUDED_TAG"],
+      "allow_tags_regex": "",
+      "exclude_tags_regex": ""
+    },
+    {
+      "id": "test 3, slot 0, should work allowing only certain tags",
+      "ip": "192.168.1.210",
+      "port": 44818,
+      "slot": 0,
+      "allow_tags": [
+        "REAL_Rx",
+        "STRING_Rx"
+      ],
+      "exclude_tags": [],
+      "allow_tags_regex": "",
+      "exclude_tags_regex": ""
+    },
+    {
+      "id": "test 4, slot 0, should work allowing only regex",
+      "ip": "192.168.1.210",
+      "port": 44818,
+      "slot": 0,
+      "allow_tags": [],
+      "exclude_tags": [],
+      "allow_tags_regex": ".*_Rx|.*_TIMER.*",
+      "exclude_tags_regex": ""
+    }
+  ],
+  "batch_list": [
+    {
+      "id": "batch10",
+      "plc_id": "test 1, slot 0, should not work",
+      "tag_list": ["TAG1", "TAG2"]
+    },
+    {
+      "id": "batch20",
+      "plc_id": "crap plc_id",
+      "tag_list": ["TAG1", "TAG2"]
+    },
+    {
+      "id": "batch30",
+      "plc_id": "test 2, slot 0, should work",
+      "tag_list": [
+        "BOOL_Rx",
+        "DINT_Rx",
+        "INT_Rx",
+        "REAL_Rx",
+        "STRING_Rx",
+        "DINT_TIMERA",
+        "DINT_TIMERB",
+        "DINT_BIT_Rx",
+        "SOME_EXCLUDED_TAG"
+      ]
+    },
+    {
+      "id": "batch40",
+      "plc_id": "test 3, slot 0, should work allowing only certain tags",
+      "tag_list": [
+        "BOOL_Rx",
+        "DINT_Rx",
+        "INT_Rx",
+        "REAL_Rx",
+        "STRING_Rx",
+        "DINT_TIMERA",
+        "DINT_TIMERB",
+        "DINT_BIT_Rx",
+        "SOME_EXCLUDED_TAG"
+      ]
+    },
+    {
+      "id": "batch41",
+      "plc_id": "test 4, slot 0, should work allowing only regex",
+      "tag_list": [
+        "BOOL_Rx",
+        "DINT_Rx",
+        "INT_Rx",
+        "REAL_Rx",
+        "STRING_Rx",
+        "DINT_TIMERA",
+        "DINT_TIMERB",
+        "DINT_BIT_Rx",
+        "SOME_EXCLUDED_TAG"
+      ]
+    }
+  ]
+}

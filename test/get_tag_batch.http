@@ -1,0 +1,103 @@
+# Good request against a valid batch_id
+POST http://localhost:8000/get_tag_batch
+Content-Type: application/json
+Authorization: basic {{request_token}}
+
+{"tag_batch_id":"{{plc_test_batch_id_good}}"}
+
+> {%
+client.test("Request executed successfully", function() {
+  client.assert(response.status === 200, "Response status is not 200");
+});
+%}
+
+###
+
+# Good request against a valid batch_id with allow_tags
+POST http://localhost:8000/get_tag_batch
+Content-Type: application/json
+Authorization: basic {{request_token}}
+
+{"tag_batch_id":"{{plc_test_batch_id_good_allow_tags}}"}
+
+> {%
+client.test("Request executed successfully", function() {
+  client.assert(response.status === 200, "Response status is not 200");
+});
+%}
+
+###
+
+# Good request against a valid batch_id with regex tags
+POST http://localhost:8000/get_tag_batch
+Content-Type: application/json
+Authorization: basic {{request_token}}
+
+{"tag_batch_id":"{{plc_test_batch_id_good_allow_tags_regex}}"}
+
+> {%
+client.test("Request executed successfully", function() {
+  client.assert(response.status === 200, "Response status is not 200");
+});
+%}
+
+###
+
+# Good request against a valid batch_id, but has bad plc_id
+POST http://localhost:8000/get_tag_batch
+Content-Type: application/json
+Authorization: basic {{request_token}}
+
+{"tag_batch_id":"{{plc_test_batch_id_bad_plcid}}"}
+
+> {%
+client.test("Request executed successfully but expected return is 404", function() {
+  client.assert(response.status === 404, "Response status is not 404");
+});
+%}
+
+###
+
+# Good request against a valid batch_id, but has unresponsive PLC
+POST http://localhost:8000/get_tag_batch
+Content-Type: application/json
+Authorization: basic {{request_token}}
+
+{"tag_batch_id":"{{plc_test_batch_id_bad_plc}}"}
+
+> {%
+client.test("Request failed as expected", function() {
+  client.assert(response.status === 500, "Response status is not 500");
+});
+%}
+
+###
+
+# Bad request against an invalid batch_id
+POST http://localhost:8000/get_tag_batch
+Content-Type: application/json
+Authorization: basic {{request_token}}
+
+{"tag_batch_id":"junk"}
+
+> {%
+client.test("Request executed successfully but expected return is 404", function() {
+  client.assert(response.status === 404, "Response status is not 404");
+});
+%}
+
+###
+
+# Bad request against an invalid token
+POST http://localhost:8000/get_tag_batch
+Content-Type: application/json
+Authorization: basic junk
+
+{"tag_batch_id":"junk"}
+
+> {%
+client.test("Request fails with bad token", function() {
+  client.assert(response.status === 401, "Response status is not 401");
+});
+%}
+

@@ -1,0 +1,20 @@
+version: '3.7'
+services:
+
+  pylogix-webserver:
+    image: pylogix-webserver:1.0.1
+    build:
+      context: .
+    environment:
+      - PY_SCRIPT=server.py
+      - PLC_CONFIG_FILE_PATH=/app/conf/plc-config.json
+      - PLC_CACHE_DIRECTORY=/app/data
+      - AUTH_TOKENS_FILE_PATH=/app/conf/auth-tokens.json
+      - HOST=localhost
+      - PORT=8000
+      # TODO: cache_ttl in PROD should be 24 hours (in minutes)
+      - CACHE_TTL=10 # Minutes
+    ports:
+      - '8000:8000'
+    volumes:
+      - ./server:/server

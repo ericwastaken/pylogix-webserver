@@ -1,0 +1,75 @@
+# Good request against a valid plc_id, valid tag_name (DINT)
+POST http://localhost:8000/get_tag_value
+Content-Type: application/json
+Authorization: basic {{request_token}}
+
+{"plc_id":"{{plc_test_id_good_plc}}", "tag_name":"{{plc_test_tag_name_good_DINT}}"}
+
+> {%
+client.test("Request executed successfully", function() {
+  client.assert(response.status === 200, "Response status is not 200");
+});
+%}
+
+###
+
+# Good request against a valid plc_id, valid tag_name (STRING)
+POST http://localhost:8000/get_tag_value
+Content-Type: application/json
+Authorization: basic {{request_token}}
+
+{"plc_id":"{{plc_test_id_good_plc}}", "tag_name":"{{plc_test_tag_name_good_STRING}}"}
+
+> {%
+client.test("Request executed successfully", function() {
+  client.assert(response.status === 200, "Response status is not 200");
+});
+%}
+
+###
+
+# Good request against a valid plc_id, INVALID tag_name
+POST http://localhost:8000/get_tag_value
+Content-Type: application/json
+Authorization: basic {{request_token}}
+
+{"plc_id":"{{plc_test_id_good_plc}}", "tag_name":"junk"}
+
+> {%
+client.test("Request executed successfully", function() {
+  client.assert(response.status === 200, "Response status is not 200");
+});
+client.test("Status in response indicates proper error", function() {
+  client.assert(response.body["tag_values"][0]["status"] != "", "Response status should indicate error on bad tag name.");
+});
+%}
+
+###
+
+# Good request against a valid plc_id, valid tag_list
+POST http://localhost:8000/get_tag_value
+Content-Type: application/json
+Authorization: basic {{request_token}}
+
+{"plc_id":"{{plc_test_id_good_plc}}", "tag_list":["{{plc_test_tag_name_good_STRING}}","{{plc_test_tag_name_good_DINT}}"]}
+
+> {%
+client.test("Request executed successfully", function() {
+  client.assert(response.status === 200, "Response status is not 200");
+});
+%}
+
+###
+
+# Bad request against with invalid token
+POST http://localhost:8000/get_tag_value
+Content-Type: application/json
+Authorization: basic junk
+
+{"plc_id":"{{plc_test_id_good_plc}}", "tag_list":["{{plc_test_tag_name_good_STRING}}","{{plc_test_tag_name_good_DINT}}"]}
+
+> {%
+client.test("Request fails with bad token", function() {
+  client.assert(response.status === 401, "Response status is not 401");
+});
+%}

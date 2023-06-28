@@ -1,0 +1,16 @@
+testca/*
+server/*
+client/*
+result/*
+*.cer
+*.pem
+*.old
+*.p12
+*.jks
+secrets.env
+index.*
+serial
+basic/testca/openssl.cnf
+
+__pycache__
+*.pyc

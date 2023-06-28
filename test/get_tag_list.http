@@ -1,0 +1,57 @@
+# Good request against a valid plc_id
+POST http://localhost:8000/get_tag_list
+Content-Type: application/json
+Authorization: basic {{request_token}}
+
+{"plc_id":"{{plc_test_id_good_plc}}"}
+
+> {%
+client.test("Request executed successfully", function() {
+  client.assert(response.status === 200, "Response status is not 200");
+});
+%}
+
+###
+
+# Good request against a valid plc_id, but bad PLC (times out)
+POST http://localhost:8000/get_tag_list
+Content-Type: application/json
+Authorization: basic {{request_token}}
+
+{"plc_id":"{{plc_test_id_bad_plc}}"}
+
+> {%
+client.test("Request failed as expected", function() {
+  client.assert(response.status === 500, "Response status is not 500");
+});
+%}
+
+###
+
+# Bad request against an invalid plc_id
+POST http://localhost:8000/get_tag_list
+Content-Type: application/json
+Authorization: basic {{request_token}}
+
+{"plc_id":"junk"}
+
+> {%
+client.test("Request executed successfully but expected return is 404", function() {
+  client.assert(response.status === 404, "Response status is not 404");
+});
+%}
+
+###
+
+# Bad request against, invalid token
+POST http://localhost:8000/get_tag_list
+Content-Type: application/json
+Authorization: basic junk
+
+{"plc_id":"junk"}
+
+> {%
+client.test("Request fails with bad token", function() {
+  client.assert(response.status === 401, "Response status is not 401");
+});
+%}

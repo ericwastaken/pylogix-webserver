@@ -1,0 +1,35 @@
+// This file has comments, but when you use it to create yours, you will have to remove them
+// since standard JSON does not allow them. This file is JSON5 which does allow comments!
+{
+  "plc_list": [
+    // Repeat as many PLC entries as desired
+    {
+      // The id is used to identify the PLC uniquely, it can be any string, but short-and-sweet is best
+      "id": "test 1, slot 0, should not work",
+      "ip": "xxx.xxx.xxx.xxx",
+      "port": 44818,
+      "slot": 0,
+      // If you want to restrict this plc to only certain tags, use the allow_tags and/or allow_tags_regex
+      // If you want to exclude certain tags, use the exclude_tags and/or exclude_tags_regex
+      // If you use both allow and exclude, the exclude will take precedence
+      // If you use both allow/exclude and allow_regex/exclude_regex, the allow will take precedence
+      "allow_tags": ["TAG1", "TAG2"],
+      "exclude_tags": ["TAG3"],
+      "allow_tags_regex": ".*",
+      "exclude_tags_regex": ""
+    }
+  ],
+  "batch_list": [
+    // Repeat as many batch entries as desired
+    // Batch lists are used to group tags together for reading with a single request
+    // Careful, if you have too many tags in a batch, pylogix might not be able to read them all due to packet size limits
+    {
+      // A batch is identified by its id, which can be any string, but short-and-sweet is best
+      "id": "batch10",
+      // The plc_id must match the id of a plc in the plc_list
+      "plc_id": "test 1, slot 0, should not work",
+      // The tag_list is a list of tags that will be read from this PLC
+      "tag_list": ["TAG1", "TAG2"]
+    }
+  ]
+}
