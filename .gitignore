@@ -90,3 +90,7 @@ fabric.properties
 /server/venv/
 # Exclude HTTP Client private values (Readme explains what needs to be in here.)
 /test/http-client.private.env.json
+
+# Nginx Webserver Secrets
+/nginx/secrets/*
+~/nginx/secrets/README.md
