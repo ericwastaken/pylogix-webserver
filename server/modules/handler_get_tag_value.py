@@ -13,7 +13,9 @@ shared_logger = logger.CustomLogger()
 
 
 class GetTagValueHandler:
-    """Class that handles the /get_tag_value endpoint"""
+    """
+    A class that handles the /get_tag_value endpoint.
+    """
     plc_list = None
     tag_lists = None
 
@@ -22,7 +24,14 @@ class GetTagValueHandler:
         self.tag_lists = tag_lists
 
     def on_post(self, req, resp):
-        """Handler for /get_tag_value post endpoint"""
+        """
+        Handler for /get_tag_value post-endpoint
+        :param req: Request object
+        :param resp: Response object
+        :return: None
+
+        The result of this method is that the response object is populated with the tag value list.
+        """
         shared_logger.log.info("GetTagValueHandler | on_post")
 
         # If middleware has already set a bad status, return immediately

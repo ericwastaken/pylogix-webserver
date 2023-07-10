@@ -9,12 +9,12 @@ import logging
 from wsgiref.simple_server import make_server
 
 # Bring in own dependencies
-import utils
-from startup import Startup
-from handler_get_tag_list import GetTagListHandler
-from handler_get_tag_value import GetTagValueHandler
-from handler_get_tag_batch import GetTagBatchHandler
-from middleware_auth import AuthMiddleware
+import modules.utils as utils
+from modules.startup import Startup
+from modules.handler_get_tag_list import GetTagListHandler
+from modules.handler_get_tag_value import GetTagValueHandler
+from modules.handler_get_tag_batch import GetTagBatchHandler
+from modules.middleware_auth import AuthMiddleware
 
 # Default logging to DEBUG
 import modules.logger as logger
