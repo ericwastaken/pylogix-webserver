@@ -12,6 +12,16 @@
     <option name="ADD_CONTENT_ROOTS" value="true" />
     <option name="ADD_SOURCE_ROOTS" value="true" />
     <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+    <EXTENSION ID="net.ashald.envfile">
+      <option name="IS_ENABLED" value="false" />
+      <option name="IS_SUBST" value="false" />
+      <option name="IS_PATH_MACRO_SUPPORTED" value="false" />
+      <option name="IS_IGNORE_MISSING_FILES" value="false" />
+      <option name="IS_ENABLE_EXPERIMENTAL_INTEGRATIONS" value="false" />
+      <ENTRIES>
+        <ENTRY IS_ENABLED="true" PARSER="runconfig" IS_EXECUTABLE="false" />
+      </ENTRIES>
+    </EXTENSION>
     <option name="SCRIPT_NAME" value="$PROJECT_DIR$/server/server.py" />
     <option name="PARAMETERS" value="--host &quot;localhost&quot; --port &quot;8000&quot; --cache-directory &quot;./data&quot; --config-file-path &quot;./conf/plc-config.json&quot; --auth-token-file-path &quot;./conf/auth-tokens.json&quot; --cache-ttl &quot;10&quot;" />
     <option name="SHOW_COMMAND_LINE" value="false" />

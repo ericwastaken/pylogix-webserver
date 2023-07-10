@@ -19,8 +19,8 @@ cd tls-gen/basic/ || exit
 # Generate the certs for our desired hostname
 
 # Wildcard for the domain expiring in 100 years
-# UPDATE THIS TO YOUR OWN DOMAIN AND DESIRED VALIDITY
-make CN=*.yourdomain.com DAYS_OF_VALIDITY=36500
+# UPDATE LOCALHOST BELOW TO YOUR OWN DOMAIN AND DESIRED VALIDITY
+make CN=localhost DAYS_OF_VALIDITY=36500
 
 # Cleanup
 rm -rf server client testca

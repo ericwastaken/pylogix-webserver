@@ -1,0 +1,8 @@
+# Exclude the data directory
+server/data
+# EXecute the virtual environment which is not neded in a Docker container
+server/venv
+# Exlude any Python caches
+**/__pycache__
+# Exclude macOS specific files
+**/.DS_Store

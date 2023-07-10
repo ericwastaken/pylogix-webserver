@@ -1,0 +1,11 @@
+# Start from NGNIX
+FROM --platform="linux/amd64" nginx:1.25-alpine
+
+# Copy the nginx configuration file
+COPY nginx/nginx.conf /etc/nginx/nginx.conf
+
+# Copy the TLS certs
+COPY nginx/secrets/server_certificate.pem /etc/nginx/certs/server_certificate.pem
+COPY nginx/secrets/server_key.pem /etc/nginx/certs/server_key.pem
+
+EXPOSE 443

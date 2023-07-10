@@ -42,7 +42,7 @@ def convert_to_safe_filename(string):
     # Replace Linux-specific reserved characters with underscore
     safe_string = re.sub(r'[\\\\]', '_', safe_string)
 
-    # Remove leading or trailing whitespace
+    # Remove leading or trailing space
     safe_string = safe_string.strip()
 
     # Remove consecutive underscores

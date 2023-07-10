@@ -1,20 +1,33 @@
 version: '3.7'
 services:
 
-  pylogix-webserver:
-    image: pylogix-webserver:1.0.1
+  nginx:
+    image: pylogix-webserver-nginx:1.0.1
+    platform: "linux/amd64"
     build:
       context: .
-    environment:
-      - PY_SCRIPT=server.py
-      - PLC_CONFIG_FILE_PATH=/app/conf/plc-config.json
-      - PLC_CACHE_DIRECTORY=/app/data
-      - AUTH_TOKENS_FILE_PATH=/app/conf/auth-tokens.json
-      - HOST=localhost
-      - PORT=8000
-      # TODO: cache_ttl in PROD should be 24 hours (in minutes)
-      - CACHE_TTL=10 # Minutes
+      dockerfile: Dockerfile-nginx
     ports:
-      - '8000:8000'
+      - "443:443"
+
+  python-backend:
+    image: pylogix-webserver-python-backend:1.0.1
+    platform: "linux/amd64"
+    build:
+      context: .
+      dockerfile: Dockerfile-pylogix-webserver
+    environment:
+      # PYTHONPATH for the server and modules
+      - PYTHONPATH=/server:/server/modules
+      - PY_SCRIPT=server.py
+      - PLC_CONFIG_FILE_PATH=/server/conf/plc-config.json
+      - PLC_CACHE_DIRECTORY=/server/data
+      - AUTH_TOKENS_FILE_PATH=/server/conf/auth-tokens.json
+      - HOST=localhost
+      - PORT=8000 # If you change this, also change the nginx.conf file
+      - CACHE_TTL=1440 # Minutes = 24 hours
     volumes:
-      - ./server:/server
+      - server-data:/server/data
+
+volumes:
+  server-data:

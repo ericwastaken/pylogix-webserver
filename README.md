@@ -21,7 +21,7 @@ This project is not related nor sanctioned by either the Pylogix library nor All
 
 ## PlC Support & Configuration
 
-PLCs that can be access by the Pylogix library can be accessed by this web server. The web server is configured with a list of PLCs.
+This web server can access PLCs that can be accessed by the Pylogix library. The web server is configured with a list of PLCs.
 
 PLC configuration is minimal. Expose some tags to be accessible externally and that's it! You can now access them through this web server (with authentication and authorization!)
 
@@ -172,15 +172,35 @@ The following are the endpoints implemented by the web server. Note all endpoint
 
 ## Deploying
 
-This web server must always be deployed behind TLS (a best practice). It is not safe to deploy this web server without TLS, even in testing setups. Please see the README.md in the **./deployment-helpers/TLS/** directory for help creating a self-signed certificate suitable for testing. In production, you should use a certificate from a trusted CA!
+This web server must always be deployed behind TLS (the best practice).
+It is not safe to deploy this web server without TLS, even in testing setups.
+Please see the README.md in the **./deployment-helpers/TLS/** directory for help
+creating a self-signed certificate suitable for testing.
+In production, you should use a certificate from a trusted CA!
 
 ### Docker + Nginx
 
-TODO: Write Docker+Nginx instructions.
+In this scenario, Docker stands up an NGINX container which receives the HTTPS requests and forwards them to the python backend. This is the recommended deployment method for PROD environments. It's the easiest to set up and maintain plus it supports TLS.
+
+#### Getting Started with the Docker + Nginx Deployment
+
+1. Configure the Pylogix-Webserver per the above instructions.
+2. Place your TLS server_certificate.pem and server_key.pem in the **./nginx/secrets/** directory. 
+3. From the root of this repository, build the Docker Compose stack with `docker-compose build`.
+4. Start the stack with `docker-compose up -d`.
+
+You should now be able to access the POST to the web server at https://localhost/get_tag_list on your docker host. (Replace with whatever hostname is configured for your host, matching the TLS certificate to avoid browser warnings!)
+
+Please see the README.md in the **./deployment-helpers/TLS/** directory for help
+creating a self-signed certificate suitable for testing.
 
 ### Nginx Native
 
+In this scenario, your own NGINX server receives the HTTPS requests and forwards them to the python backend.
+
 You can use the same configuration as the Docker + Nginx setup, but you'll have to install and configure Nginx yourself.
+
+See the configuration in **./nginx/** for details.
 
 ## Testing
 
@@ -255,13 +275,13 @@ In your **./conf** directory, you'll want compatible **auth-tokens.json** and **
 
 ## Python Nuances
 
-Tested with Python 3.11.4 on macOs. Should work with any Python 3.6+.
+Tested with Python 3.11.4 on macOS. Should work with any Python 3.6+.
 
 You must provide Python in your environment. Ways of doing this:
 
 **Native Setup**
 
-Checkout this repo on a workstation that has Python3 natively.
+Checkout this repo on a workstation that has Python3 natively. You can then create a virtual environment with Python 3.11.4 and install the requirements.txt.
 
 **PyCharm Setup**
 
@@ -277,16 +297,12 @@ As an alternative, you can use the Docker version of the server, which will run 
 
 NodeJS is only used for formatting JSON files with prettier. It's not used for the server itself.
 
-## Roadmap TODOs
+## Roadmap
 
-- README todo items
-- Crete a Docker compose deployment.
-  - copies the code, python 3.11.4, install requirements, bind conf, data in a volume
-  - fix PyCharm's run-config for the docker-compose deployment
-- Test all the calls with unresponsive PLC
+- Perform more testing of all the calls with an unresponsive PLC
   - "description": "An internal error occurred. Details: 'NoneType' object has no attribute 'timestamp'"
 
-## Future TODOs
+## Future
 
 - (maybe) Support more features from the underlying PyLogix (other than tag write or other operations that change PLC data)?
 - (maybe, unlikely we want this unless much more security is added) Writing tags (or other PLC data changes) with granular permissions (could be limited to certain tokens, or even certain tags explicitly configured.)
