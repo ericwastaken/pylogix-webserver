@@ -301,6 +301,7 @@ NodeJS is only used for formatting JSON files with prettier. It's not used for t
 
 - Perform more testing of all the calls with an unresponsive PLC
   - "description": "An internal error occurred. Details: 'NoneType' object has no attribute 'timestamp'"
+- Enforce rate limits defined per PLC, per client, etc.
 
 ## Future
 
