@@ -1,5 +1,7 @@
 # Python Dependencies
 import falcon
+from falcon_limiter import Limiter
+from falcon_limiter.utils import register
 
 # Import our own dependencies
 import utils
@@ -10,9 +12,22 @@ import model_PlcList
 import modules.logger as logger
 shared_logger = logger.CustomLogger()
 
+# Define our rate limiter for this request class
+# Set the rate limiting key, which will be the plc_id for the given request
+# Note we do not set a default limit nor dynamic default limit since that will be
+# set at the handler method level based on the config for the PLC.
+limiter = Limiter(
+    key_func=utils.get_limit_key
+)
 
+
+@limiter.limit()
 class GetTagListHandler:
-    """Class that handles the /get_tag_list endpoint"""
+    """
+    Class that handles the /get_tag_list endpoint
+    Note the use of the falcon-limiter package to rate limit this endpoint
+    The limit is set in the config file, and is a per plc_id limit
+    """
     plc_list = None
     tag_lists = None
 
@@ -20,8 +35,13 @@ class GetTagListHandler:
         self.plc_list = plc_list
         self.tag_lists = tag_lists
 
+    @register(limiter.limit(dynamic_limits=
+                            lambda req, resp, resource, params:
+                                utils.get_limit_string_for_plc(req, resp, resource, params)))
     def on_post(self, req, resp):
-        """Handler for /get_tag_list post endpoint"""
+        """
+        Handler for /get_tag_list post endpoint
+        """
         shared_logger.log.info("GetTagListHandler | on_post")
 
         # If middleware has already set a bad status, return immediately

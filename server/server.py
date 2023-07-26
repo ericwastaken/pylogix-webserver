@@ -3,6 +3,7 @@ import argparse
 import signal
 import sys
 import falcon
+from falcon_limiter import Limiter
 import logging
 
 # Let's get this party started!
@@ -47,8 +48,11 @@ if __name__ == '__main__':
     # Set up the server pre-requisites
     plc_list, tag_lists, batch_list = Startup.start(args.config_file_path, args.cache_directory, args.cache_ttl)
 
-    # Instantiate the server and hook up the auth middleware
-    app = falcon.App(middleware=[AuthMiddleware(args.auth_token_file_path)])
+    # Set up an empty rate limiter. This will be populated in the handler classes.
+    limiter = Limiter()
+
+    # Instantiate the server and hook up the middleware packages for auth and rate limiting
+    app = falcon.App(middleware=[AuthMiddleware(args.auth_token_file_path), limiter.middleware])
     # define Server Endpoint Routes and Handlers
     app.add_route('/get_tag_list', GetTagListHandler(plc_list, tag_lists))
     app.add_route('/get_tag_value', GetTagValueHandler(plc_list, tag_lists))

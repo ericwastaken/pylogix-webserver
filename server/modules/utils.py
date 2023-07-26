@@ -161,3 +161,53 @@ def process_allow_disallow_tag_list(tag_list, plc_config: model_PlcList.PlcConfi
 
     shared_logger.log.debug(f"Final tag list: {tag_list}")
     return original_tag_list, tag_list
+
+
+# Utilities related to rate limiting
+
+
+def get_limit_key(req, resp, resource, params) -> str:
+    """
+    Function to return the key to use for rate limiting.
+    This function is called by the falcon-limiter package.
+    The key is the plc_id or the tag_batch_id, which are required fields in the JSON body of the request for
+    fetching batches and values.
+    """
+    obj = req.get_media()
+    tag_batch_id = obj.get('tag_batch_id')
+    plc_id = obj.get('plc_id')
+    return plc_id if plc_id is not None else tag_batch_id
+
+
+def get_limit_string_for_plc(req, resp, resource, params) -> str:
+    """
+    Function to return the string for rate limiting
+    This function is called by the falcon-limiter package
+    """
+    # Pull the plc_list from the shared singleton that was initialized at startup
+    plc_list = model_PlcList.PlcList()
+    # Pull the plc_id from the request body
+    obj = req.get_media()
+    plc_id = obj.get('plc_id')
+    # Fetch and return the rate limit, if any, for the requested plc_id
+    for plc in plc_list:
+        if plc.id == plc_id:
+            return plc.rate_limit
+    return ""
+
+
+def get_limit_string_for_batch(req, resp, resource, params) -> str:
+    """
+    Function to return the string for rate limiting
+    This function is called by the falcon-limiter package
+    """
+    # Pull the batch_list from the shared singleton that was initialized at startup
+    batch_list = model_BatchList.BatchList()
+    # Pull the tag_batch_id from the request body
+    obj = req.get_media()
+    tag_batch_id = obj.get('tag_batch_id')
+    # Fetch and return the rate limit, if any, for the requested tag_batch_id
+    for batch in batch_list:
+        if batch.id == tag_batch_id:
+            return batch.rate_limit
+    return ""

@@ -13,6 +13,8 @@ This web server is useful to allow a separation between a client application tha
 
 Furthermore, this web server can be network-isolated in such a way that client applications can't access the EtnerNet/IP protocols directly. Only the web server can access the PLC protocols and network, while client applications only connect to the web server (and are required to hold a valid token defined by the web server administrators.) 
 
+The web server can also optionally support Rate Limiting for requests. This can be useful to prevent a client application from overwhelming the web server and the downstream PLCs with requests. See the section [Rate Limiting](#rate-limiting) below for details.
+
 Finally, this webserver can be deployed by the controls engineering team (or an IT team) that can gatekeep the data being accessed. Client applications by other teams can then access the data in a controlled fashion!
 
 ## Not Official nor Sanctioned
@@ -32,16 +34,47 @@ The **plc-config.json** file in the **conf** directory is where you want to decl
 You can see an example in this repo under **./server/conf/plc-config.template.json5**. Note the example is JSON5 which allows comments, but when you use this to create your own file, you'll have to remove the comments!
 
 * Supports as many PLCs as you want. Just add more entries in `plc_list`.
-* Inside each PLC entry, you can choose to provide allow_tags, exclude_tags, allow_tags_regex, and exclude_tags_regex. This allows you to limit the tags that the web server will allow to be retrieved from a PLC. Note that allow/exclude tags takes priority over allow/exclude tags regex, so you want to use one or the other but not both.
+* Inside each PLC entry, you can choose to provide allow_tags, exclude_tags, allow_tags_regex, and exclude_tags_regex. This allows you to limit the tags that the web server will allow to be retrieved from a PLC. Note that allow/exclude tags takes priority over allow/exclude tags regex, so you want to use one or the other but not both. You can also set specific rate limits per PLC. See the section [Rate Limiting](#rate-limiting) below for details.
 * Supports as many batch_lists as you want. Just add more entries in `batch_list`.
   * Note that though having many batch_lists won't affect performance, reading too many tags in a single batch might actually cause a read failure due to limitations in packet size from single reads.
   * Each batch will retrieve values from a single PLC.
+  * Each batch can enforce a rate limit. See the section [Rate Limiting](#rate-limiting) below for details.
 
 ## Web Server Authentication
 
 This web server implements basic authentication, which is header based. Client applications must pass an "Authorization" header with "basic \[TOKEN-HERE\]". The passed token is then verified against a list of tokens held by the server.
 
 The file **./conf/auth-tokens.json** should contain one or more tokens that clients can use.
+
+## Rate Limiting
+
+This web server can optionally support rate limiting. Rate limiting is implemented using the [Falcon Limiter Library](https://falcon-limiter.readthedocs.io/en/latest/#). Rate limiting can be configured per PLC and per batch.
+
+The rate limit is configured via a limit string as defined by the library's [rate limit string notation](https://falcon-limiter.readthedocs.io/en/latest/#rate-limit-string-notation). The rate limits are specified as strings following the format:
+
+[count] [per | /] [n (optional)] [second | minute | hour | day | month | year]
+
+You can combine multiple rate limits by separating them with a delimiter of your choice.
+
+Examples:
+- 2 per minute
+- 2/minute
+- 10 per hour
+- 10/hour
+- 10/hour;100/day;2000 per year
+- 100/day, 500/7days
+
+### Per PLC Rate Limiting
+
+Enforces that any given PLC (based on the unique plc id in the web server config) will not be accessed more than the defined limit. The limit is defined in the web server config file. See the section [Web Server Config File](#web-server-config-file) above for details.
+
+Note since this limit is enforced at the web server level, it is possible that a client application can exceed a limit against a single PLC if you have more than one entry in your config for a given PLC. For this reason, if you are going to use rate limits, we recommend that you only list each PLC once in your config!
+
+### Per Batch Rate Limiting
+
+Enforces that any given batch (based on the unique batch id in the web server config) will not be accessed more than the defined limit. The limit is defined in the web server config file. See the section [Web Server Config File](#web-server-config-file) above for details.
+
+Note since this limit is enforced at the web server level, it is possible that a client application can exceed a limit against a single PLC if you have more than one batch entry in your config for against the same PLC. Since batch size is an important consideration, it's not always practical to have a single batch per PLC. For this reason, if you will be using rate limits in batches, we recommend that you use as few batches as possible considering your data size AND that you consider the rate limit of all your batches against the same PLC overall when you set limits.
 
 ## Web Server Details
 
@@ -235,25 +268,29 @@ In your **./conf** directory, you'll want compatible **auth-tokens.json** and **
       "id": "test 1, slot 0, should not work",
       "ip": "192.168.1.211",
       "port": 44818,
-      "slot": 0
+      "slot": 0,
+      "rate_limit": ""
     },
     {
       "id": "test 2, slot 0, should work",
       "ip": "192.168.1.210",
       "port": 44818,
-      "slot": 0
+      "slot": 0,
+      "rate_limit": ""
     }
   ],
   "batch_list": [
     {
       "id": "batch10",
       "plc_id": "test 1, slot 0, should not work",
-      "tag_list": ["TAG1", "TAG2"]
+      "tag_list": ["TAG1", "TAG2"],
+      "rate_limit": ""
     },
     {
       "id": "batch20",
       "plc_id": "crap plc_id",
-      "tag_list": ["TAG1", "TAG2"]
+      "tag_list": ["TAG1", "TAG2"],
+      "rate_limit": ""
     },
     {
       "id": "batch30",
@@ -267,11 +304,14 @@ In your **./conf** directory, you'll want compatible **auth-tokens.json** and **
         "DINT_TIMERA",
         "DINT_TIMERB",
         "DINT_BIT_Rx"
-      ]
+      ],
+      "rate_limit": ""
     }
   ]
 }
 ```
+
+**Testing and Rate Limiting:** When running automated tests, you'll want to ensure your rate limits allow for the tests to complete.
 
 ## Python Nuances
 
@@ -301,10 +341,12 @@ NodeJS is only used for formatting JSON files with prettier. It's not used for t
 
 - Perform more testing of all the calls with an unresponsive PLC
   - "description": "An internal error occurred. Details: 'NoneType' object has no attribute 'timestamp'"
+- Enhance rate limiting on batch tag reads so that there is an option to rate limit per PLC, not just per batch. 
 
 ## Future
 
 - (maybe) Support more features from the underlying PyLogix (other than tag write or other operations that change PLC data)?
+- (maybe) Implement produce/consume tags which could be a way for the web server to listen for incoming PLC data initiated by the PLC (and cache this locally) then respond with said data to clients when clients request it - still via HTTP. Needs to define what the listeners will be per what a sending PLC can support. This would be a way to get PLC data to clients without the clients having to poll for it.
 - (maybe, unlikely we want this unless much more security is added) Writing tags (or other PLC data changes) with granular permissions (could be limited to certain tokens, or even certain tags explicitly configured.)
 - (maybe) Stricter adherence to REST specifications?
 - (if needed) other authentication methods? (LDAP/RADIUS, etc.)

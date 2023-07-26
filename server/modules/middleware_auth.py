@@ -6,6 +6,7 @@ import json
 import modules.logger as logger
 shared_logger = logger.CustomLogger()
 
+
 class AuthMiddleware:
     def __init__(self, tokens_file_path):
         self.tokens = self.load_tokens(tokens_file_path)

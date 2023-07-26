@@ -1,5 +1,7 @@
 # Python Dependencies
 import falcon
+from falcon_limiter import Limiter
+from falcon_limiter.utils import register
 
 # Import our own dependencies
 import utils
@@ -10,10 +12,18 @@ import model_BatchList
 # Default logging to DEBUG
 import modules.logger as logger
 from middleware_auth import AuthMiddleware
-
 shared_logger = logger.CustomLogger()
 
+# Define our rate limiter for this request class
+# Set the rate limiting key, which will be the plc_id for the given request
+# Note we do not set a default limit nor dynamic default limit since that will be
+# set at the handler method level based on the config for the PLC.
+limiter = Limiter(
+    key_func=utils.get_limit_key
+)
 
+
+@limiter.limit()
 class GetTagBatchHandler:
     """Class that handles the /get_tag_batch endpoint"""
     plc_list = None
@@ -25,6 +35,9 @@ class GetTagBatchHandler:
         self.tag_lists = tag_lists
         self.batch_list = batch_list
 
+    @register(limiter.limit(dynamic_limits=
+                            lambda req, resp, resource, params:
+                                utils.get_limit_string_for_batch(req, resp, resource, params)))
     def on_post(self, req, resp):
         """Handler for /get_tag_batch post endpoint"""
         shared_logger.log.info("GetTagBatchHandler | on_post")

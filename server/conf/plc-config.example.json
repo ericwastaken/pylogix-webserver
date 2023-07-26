@@ -8,7 +8,8 @@
       "allow_tags": ["TAG1", "TAG2"],
       "exclude_tags": ["TAG3"],
       "allow_tags_regex": ".*",
-      "exclude_tags_regex": ""
+      "exclude_tags_regex": "",
+      "rate_limit": "2 per minute"
     },
     {
       "id": "test 2, slot 0, should work",
@@ -18,7 +19,8 @@
       "allow_tags": [],
       "exclude_tags": ["SOME_EXCLUDED_TAG"],
       "allow_tags_regex": "",
-      "exclude_tags_regex": ""
+      "exclude_tags_regex": "",
+      "rate_limit": ""
     },
     {
       "id": "test 3, slot 0, should work allowing only certain tags",
@@ -31,7 +33,8 @@
       ],
       "exclude_tags": [],
       "allow_tags_regex": "",
-      "exclude_tags_regex": ""
+      "exclude_tags_regex": "",
+      "rate_limit": ""
     },
     {
       "id": "test 4, slot 0, should work allowing only regex",
@@ -41,19 +44,22 @@
       "allow_tags": [],
       "exclude_tags": [],
       "allow_tags_regex": ".*_Rx|.*_TIMER.*",
-      "exclude_tags_regex": ""
+      "exclude_tags_regex": "",
+      "rate_limit": ""
     }
   ],
   "batch_list": [
     {
       "id": "batch10",
       "plc_id": "test 1, slot 0, should not work",
-      "tag_list": ["TAG1", "TAG2"]
+      "tag_list": ["TAG1", "TAG2"],
+      "rate_limit": ""
     },
     {
       "id": "batch20",
       "plc_id": "crap plc_id",
-      "tag_list": ["TAG1", "TAG2"]
+      "tag_list": ["TAG1", "TAG2"],
+      "rate_limit": ""
     },
     {
       "id": "batch30",
@@ -68,7 +74,8 @@
         "DINT_TIMERB",
         "DINT_BIT_Rx",
         "SOME_EXCLUDED_TAG"
-      ]
+      ],
+      "rate_limit": "2 per minute"
     },
     {
       "id": "batch40",
@@ -83,7 +90,8 @@
         "DINT_TIMERB",
         "DINT_BIT_Rx",
         "SOME_EXCLUDED_TAG"
-      ]
+      ],
+      "rate_limit": "5 per minute"
     },
     {
       "id": "batch41",
@@ -98,7 +106,8 @@
         "DINT_TIMERB",
         "DINT_BIT_Rx",
         "SOME_EXCLUDED_TAG"
-      ]
+      ],
+      "rate_limit": "10 per minute"
     }
   ]
 }

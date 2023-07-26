@@ -16,7 +16,10 @@
       "allow_tags": ["TAG1", "TAG2"],
       "exclude_tags": ["TAG3"],
       "allow_tags_regex": ".*",
-      "exclude_tags_regex": ""
+      "exclude_tags_regex": "",
+      // Optionally set a rate limit for this PLC. Will have no rate limit if left blank or not present.
+      // Syntax per the Falcon-Limiter library https://falcon-limiter.readthedocs.io/en/latest/#rate-limit-string-notation
+      "rate_limit": "5 per minute"
     }
   ],
   "batch_list": [
@@ -29,7 +32,10 @@
       // The plc_id must match the id of a plc in the plc_list
       "plc_id": "test 1, slot 0, should not work",
       // The tag_list is a list of tags that will be read from this PLC
-      "tag_list": ["TAG1", "TAG2"]
+      "tag_list": ["TAG1", "TAG2"],
+      // Optionally set a rate limit for this BATCH. Will have no rate limit if left blank or not present.
+      // Syntax per the Falcon-Limiter library https://falcon-limiter.readthedocs.io/en/latest/#rate-limit-string-notation
+      "rate_limit": "5 per minute"
     }
   ]
 }
