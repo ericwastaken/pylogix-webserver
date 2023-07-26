@@ -10,6 +10,7 @@ This web server is useful to allow a separation between a client application tha
 
 - allow reads of only specific tag names or tag names matching an allow regex.
 - explicitly exclude specific tag names or tag names matching an exclude regex.
+- enforce rate limits on the number of reads per second, minute, hour, day, month, or year for any given PLC or batch of tags.
 
 Furthermore, this web server can be network-isolated in such a way that client applications can't access the EtnerNet/IP protocols directly. Only the web server can access the PLC protocols and network, while client applications only connect to the web server (and are required to hold a valid token defined by the web server administrators.) 
 
