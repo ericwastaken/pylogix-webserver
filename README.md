@@ -340,6 +340,7 @@ NodeJS is only used for formatting JSON files with prettier. It's not used for t
 
 ## Roadmap
 
+- Publish a pre-built Docker Hub image and a repo exclusively for using that, including releases.
 - Perform more testing of all the calls with an unresponsive PLC
   - "description": "An internal error occurred. Details: 'NoneType' object has no attribute 'timestamp'"
 - Enhance rate limiting on batch tag reads so that there is an option to rate limit per PLC, not just per batch. 
